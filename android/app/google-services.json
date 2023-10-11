@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "203170526126",
+    "project_id": "nhai-mj",
+    "storage_bucket": "nhai-mj.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:203170526126:android:f15ce82758dc7fe2df4e3f",
+        "android_client_info": {
+          "package_name": "com.example.mj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXkMAK5SHGP_EAKrRodE666Xg_qQmUckQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
