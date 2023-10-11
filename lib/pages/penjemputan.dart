@@ -26,6 +26,8 @@ class Penjemputan extends StatefulWidget {
 }
 
 class _PenjemputanState extends State<Penjemputan> {
+  bool bottomsheetOpened = false;
+
   LatLng? userPosition;
   LatLng? driverPosition;
   List<LatLng>? coordinates;
@@ -33,7 +35,7 @@ class _PenjemputanState extends State<Penjemputan> {
   Completer<GoogleMapController?> controller = Completer();
   GoogleMapPolyline googleMapPolyline = GoogleMapPolyline(apiKey: mapsApi);
 
-  int estimasiDriver = 300; // in seconds
+  int estimasiDriver = 5; // in seconds
   late Timer timer;
   bool timerComplete = false;
 
@@ -102,290 +104,185 @@ class _PenjemputanState extends State<Penjemputan> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => UserBloc()
-        ..add(
-          UserPostOrder(widget.model),
-        ),
-      child: BlocConsumer<UserBloc, UserState>(
-        listener: (context, state) {
-          if (state is UserMakeOrderFailed) {
-            showSnackbar(context, state.e);
-            Navigator.pop(context);
-          }
-        },
-        builder: (context, state) {
-          if (state is UserMakeOrderSuccess) {
-            return WillPopScope(
-              onWillPop: () async {
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    PageTransition(
-                      child: const Home(),
-                      type: PageTransitionType.leftToRightWithFade,
+  void openBottomSheet() {
+    if (!bottomsheetOpened) {
+      showModalBottomSheet(
+          useSafeArea: true,
+          showDragHandle: true,
+          context: context,
+          isScrollControlled: true,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(20),
+            ),
+          ),
+          builder: (BuildContext context) {
+            // return StatefulBuilder(
+            //     builder: (BuildContext context, StateSetter setState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Alamat',
+                    style: semiboldTS.copyWith(fontSize: 18),
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: white2Color,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    (route) => false);
-                return false;
-              },
-              child: Scaffold(
-                body: ListView(
-                  children: [
-                    Stack(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height / 2,
-                          child: GoogleMap(
-                            padding: EdgeInsets.only(
-                              bottom: MediaQuery.of(context).size.height / 2,
-                            ),
-                            initialCameraPosition: CameraPosition(
-                              target: LatLng(
-                                widget.model.latitude!,
-                                widget.model.longitude!,
-                              ),
-                              zoom: 14,
-                            ),
-                            mapType: MapType.terrain,
-                            mapToolbarEnabled: false,
-                            onMapCreated: (mapController) {
-                              controller.complete(mapController);
-                            },
-                            markers: {
-                              Marker(
-                                markerId: const MarkerId('User Location'),
-                                position: userPosition!,
-                              ),
-                              Marker(
-                                markerId: const MarkerId('Driver Location'),
-                                position: driverPosition!,
-                              ),
-                            },
-                            polylines: {
-                              Polyline(
-                                width: 4,
-                                polylineId: const PolylineId('Driver Route'),
-                                color: blueColor,
-                                points: coordinates ?? [],
-                              ),
-                            },
+                        Text(
+                          widget.model.shortAddress.toString(),
+                          style: semiboldTS.copyWith(
+                            fontSize: 16,
+                            height: 1.5,
                           ),
                         ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height / 2,
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 24,
-                              ),
-                              margin: const EdgeInsets.only(bottom: 24),
-                              decoration: BoxDecoration(
-                                color: whiteColor,
-                                border: Border.all(color: blackBlur20Color),
-                                borderRadius: BorderRadius.circular(41),
-                              ),
-                              child: FittedBox(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      height: 6,
-                                      width: 6,
-                                      decoration: BoxDecoration(
-                                        color: timerComplete
-                                            ? greenColor
-                                            : blueColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      width: 8,
-                                    ),
-                                    timerComplete
-                                        ? Text(
-                                            'Driver telah tiba',
-                                            style: semiboldTS.copyWith(
-                                                fontSize: 12),
-                                          )
-                                        : Text(
-                                            'Estimasi : ${estimasiDriver ~/ 60} menit lagi',
-                                            style: semiboldTS.copyWith(
-                                                fontSize: 12),
-                                          ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Text(
+                          widget.model.fullAddress.toString(),
+                          style: regularTS.copyWith(
+                            height: 1.5,
                           ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 28,
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Detail Setoran',
+                        style: semiboldTS.copyWith(fontSize: 18),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'Order ID : ${widget.model.orderId}',
+                        style: mediumTS.copyWith(fontSize: 10),
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: white2Color,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Minyak (L)',
+                              style: semiboldTS,
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${widget.model.minyak} Liter',
+                              style: boldTS,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 12,
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              'Poin untuk Anda',
+                              style: semiboldTS,
+                            ),
+                            const Spacer(),
+                            Text(
+                              widget.model.poin.toString(),
+                              style: boldTS,
+                            ),
+                          ],
                         )
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Alamat',
-                            style: semiboldTS.copyWith(fontSize: 18),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: white2Color,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.model.shortAddress.toString(),
-                                  style: semiboldTS.copyWith(
-                                    fontSize: 16,
-                                    height: 1.5,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                Text(
-                                  widget.model.fullAddress.toString(),
-                                  style: regularTS.copyWith(height: 1.5),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 28,
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'Detail Setoran',
-                                style: semiboldTS.copyWith(fontSize: 18),
-                              ),
-                              const Spacer(),
-                              Text(
-                                'Order ID : ${widget.model.orderId}',
-                                style: mediumTS.copyWith(fontSize: 10),
-                              )
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: white2Color,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Minyak (L)',
-                                      style: semiboldTS,
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      '${widget.model.minyak} Liter',
-                                      style: boldTS,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 12,
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Poin untuk Anda',
-                                      style: semiboldTS,
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      widget.model.poin.toString(),
-                                      style: boldTS,
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 28,
-                          ),
-                          Text(
-                            'Detail Kurir',
-                            style: semiboldTS.copyWith(fontSize: 18),
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: white2Color,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 32,
-                                  backgroundColor: whiteColor,
-                                  child: Image.asset(
-                                    'assets/icons/home_user.png',
-                                    scale: 1.5,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Budi Satya',
-                                      style: semiboldTS,
-                                    ),
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text(
-                                      'Honda Beat Biru',
-                                      style: mediumTS,
-                                    ),
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text(
-                                      'N 1234 BPZ',
-                                      style: boldTS,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  ),
+                  const SizedBox(
+                    height: 28,
+                  ),
+                  Text(
+                    'Detail Kurir',
+                    style: semiboldTS.copyWith(fontSize: 18),
+                  ),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: white2Color,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  ],
-                ),
-                bottomNavigationBar: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: timerComplete
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 32,
+                          backgroundColor: whiteColor,
+                          child: Image.asset(
+                            'assets/icons/home_user.png',
+                            scale: 1.5,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Budi Satya',
+                              style: semiboldTS,
+                            ),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              'Honda Beat Biru',
+                              style: mediumTS,
+                            ),
+                            const SizedBox(
+                              height: 4,
+                            ),
+                            Text(
+                              'N 1234 BPZ',
+                              style: boldTS,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 28,
+                  ),
+                  timerComplete
                       ? CustomContinue(
                           text: 'Selesai',
                           action: () {
@@ -452,7 +349,165 @@ class _PenjemputanState extends State<Penjemputan> {
                           text: 'Selesai',
                           bgColor: white3Color,
                         ),
+                  const SizedBox(
+                    height: 28,
+                  ),
+                ],
+              ),
+            );
+          });
+      // });
+      bottomsheetOpened = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => UserBloc()
+        ..add(
+          UserPostOrder(widget.model),
+        ),
+      child: BlocConsumer<UserBloc, UserState>(
+        listener: (context, state) {
+          if (state is UserMakeOrderFailed) {
+            showSnackbar(context, state.e);
+            Navigator.pop(context);
+          }
+        },
+        builder: (context, state) {
+          if (state is UserMakeOrderSuccess) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              openBottomSheet();
+            });
+            return WillPopScope(
+              onWillPop: () async {
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    PageTransition(
+                      child: const Home(),
+                      type: PageTransitionType.leftToRightWithFade,
+                    ),
+                    (route) => false);
+                return false;
+              },
+              child: Scaffold(
+                appBar: AppBar(
+                  toolbarHeight: 72,
+                  leadingWidth: 68,
+                  backgroundColor: Colors.transparent,
+                  leading: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          PageTransition(
+                            child: const Home(),
+                            type: PageTransitionType.leftToRightWithFade,
+                          ),
+                          (route) => false,
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: whiteColor,
+                          border: Border.all(color: blackBlur20Color),
+                        ),
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: blackColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  title: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 28,
+                    ),
+                    decoration: BoxDecoration(
+                      color: whiteColor,
+                      border: Border.all(color: blackBlur20Color),
+                      borderRadius: BorderRadius.circular(41),
+                    ),
+                    child: FittedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 8,
+                            width: 8,
+                            decoration: BoxDecoration(
+                              color: timerComplete ? greenColor : blueColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          timerComplete
+                              ? Text(
+                                  'Driver telah tiba',
+                                  style: semiboldTS.copyWith(
+                                      fontSize: 12, color: blackColor),
+                                )
+                              : Text(
+                                  'Estimasi : ${estimasiDriver ~/ 60} menit lagi',
+                                  style: semiboldTS.copyWith(
+                                      fontSize: 12, color: blackColor),
+                                ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  centerTitle: true,
+                  elevation: 0,
                 ),
+                extendBodyBehindAppBar: true,
+                body: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(
+                      widget.model.latitude!,
+                      widget.model.longitude!,
+                    ),
+                    zoom: 14,
+                  ),
+                  mapType: MapType.terrain,
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).size.height),
+                  onMapCreated: (mapController) {
+                    controller.complete(mapController);
+                  },
+                  markers: {
+                    Marker(
+                      markerId: const MarkerId('User Location'),
+                      position: userPosition!,
+                    ),
+                    Marker(
+                      markerId: const MarkerId('Driver Location'),
+                      position: driverPosition!,
+                    ),
+                  },
+                  polylines: {
+                    Polyline(
+                      width: 4,
+                      polylineId: const PolylineId('Driver Route'),
+                      color: blueColor,
+                      points: coordinates ?? [],
+                    ),
+                  },
+                ),
+                floatingActionButton: FloatingShowBottomsheet(
+                  action: () {
+                    bottomsheetOpened = false;
+                    openBottomSheet();
+                  },
+                  alamat: widget.model.shortAddress.toString(),
+                ),
+                floatingActionButtonLocation:
+                    FloatingActionButtonLocation.centerFloat,
               ),
             );
           }
@@ -474,5 +529,64 @@ class _PenjemputanState extends State<Penjemputan> {
         },
       ),
     );
+  }
+}
+
+class FloatingShowBottomsheet extends StatelessWidget {
+  final String alamat;
+  final VoidCallback? action;
+  const FloatingShowBottomsheet({super.key, this.action, required this.alamat});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        onTap: action,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.all(16),
+          decoration: ShapeDecoration(
+            color: whiteColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            shadows: [
+              BoxShadow(
+                color: blackBlur20Color,
+                blurRadius: 32,
+                offset: const Offset(0, 16),
+                spreadRadius: -20,
+              )
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Alamat',
+                      style: mediumTS.copyWith(color: blackBlur40Color),
+                    ),
+                    const SizedBox(
+                      height: 6,
+                    ),
+                    Text(
+                      alamat,
+                      style: boldTS.copyWith(fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+              Image.asset(
+                'assets/icons/arrow_up.png',
+                scale: 2,
+              ),
+            ],
+          ),
+        ));
   }
 }

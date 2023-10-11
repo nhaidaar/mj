@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'MJ',
           theme: ThemeData(
             fontFamily: 'PlusJakartaSans',
