@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:mj/models/kurir_model.dart';
 
 class OrderModel {
   final DateTime? orderMade;
@@ -7,10 +8,13 @@ class OrderModel {
   final bool? isFinished;
   final String? shortAddress;
   final String? fullAddress;
-  final double? latitude;
-  final double? longitude;
+  final double? userLatitude;
+  final double? userLongitude;
+  final double? warehouseLatitude;
+  final double? warehouseLongitude;
   final double? minyak;
   final int? poin;
+  // final KurirModel? kurir;
 
   OrderModel({
     this.orderMade,
@@ -19,10 +23,13 @@ class OrderModel {
     this.isFinished,
     this.shortAddress,
     this.fullAddress,
-    this.latitude,
-    this.longitude,
+    this.userLatitude,
+    this.userLongitude,
+    this.warehouseLatitude,
+    this.warehouseLongitude,
     this.minyak,
     this.poin,
+    // this.kurir,
   });
 
   Map<String, dynamic> toMap() {
@@ -33,10 +40,13 @@ class OrderModel {
       'isFinished': isFinished,
       'shortAddress': shortAddress,
       'fullAddress': fullAddress,
-      'latitude': latitude,
-      'longitude': longitude,
+      'userLatitude': userLatitude,
+      'userLongitude': userLongitude,
+      'warehouseLatitude': warehouseLatitude,
+      'warehouseLongitude': warehouseLongitude,
       'minyak': minyak,
       'poin': poin,
+      // 'kurir': kurir,
     };
   }
 
@@ -48,10 +58,13 @@ class OrderModel {
       isFinished: map['isFinished'],
       shortAddress: map['shortAddress'],
       fullAddress: map['fullAddress'],
-      latitude: map['latitude'],
-      longitude: map['longitude'],
+      userLatitude: map['userLatitude'],
+      userLongitude: map['userLongitude'],
+      warehouseLatitude: map['warehouseLatitude'],
+      warehouseLongitude: map['warehouseLongitude'],
       minyak: map['minyak'],
       poin: map['poin'],
+      // kurir: map['kurir'] == null ? null : KurirModel.fromMap(map['kurir']),
     );
   }
 
@@ -62,8 +75,10 @@ class OrderModel {
     bool? isFinished,
     String? shortAddress,
     String? fullAddress,
-    double? latitude,
-    double? longitude,
+    double? userLatitude,
+    double? userLongitude,
+    double? warehouseLatitude,
+    double? warehouseLongitude,
     double? minyak,
     int? poin,
   }) =>
@@ -74,8 +89,10 @@ class OrderModel {
         isFinished: isFinished ?? this.isFinished,
         shortAddress: shortAddress ?? this.shortAddress,
         fullAddress: fullAddress ?? this.fullAddress,
-        latitude: latitude ?? this.latitude,
-        longitude: longitude ?? this.longitude,
+        userLatitude: userLatitude ?? this.userLatitude,
+        userLongitude: userLongitude ?? this.userLongitude,
+        warehouseLatitude: warehouseLatitude ?? this.warehouseLatitude,
+        warehouseLongitude: warehouseLongitude ?? this.userLongitude,
         minyak: minyak ?? this.minyak,
         poin: poin ?? this.poin,
       );

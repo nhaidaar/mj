@@ -30,3 +30,5 @@ class UserCheckPendingOrder extends UserEvent {
   @override
   List<Object> get props => [uid];
 }
+
+class UserScanBarcode extends UserEvent {}

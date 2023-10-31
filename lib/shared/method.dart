@@ -16,10 +16,49 @@ void showSnackbar(BuildContext context, String message) {
     message: message,
     flushbarPosition: FlushbarPosition.TOP,
     backgroundColor: orangeColor,
+    boxShadows: const [
+      BoxShadow(
+        blurRadius: 10,
+        spreadRadius: -20,
+      )
+    ],
     duration: const Duration(seconds: 2),
-    margin: const EdgeInsets.all(10),
-    borderRadius: BorderRadius.circular(41),
+    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+    padding: const EdgeInsets.all(20),
+    borderRadius: BorderRadius.circular(10),
   ).show(context);
+}
+
+void showLoadingDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierColor: blackBlur40Color,
+    barrierDismissible: false,
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: yellowColor,
+        ),
+        padding: const EdgeInsets.all(28),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(
+              color: blackColor,
+            ),
+            const SizedBox(width: 20),
+            Text(
+              'Tunggu ya...',
+              style: mediumTS.copyWith(fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 String generateOrderId() {

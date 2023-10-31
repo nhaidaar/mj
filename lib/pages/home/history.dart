@@ -30,6 +30,7 @@ class _HistoryPageState extends State<HistoryPage> {
       ),
       body: SafeArea(
         child: ListView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           children: [
             const SizedBox(
@@ -75,14 +76,14 @@ class _HistoryPageState extends State<HistoryPage> {
                       context,
                       AsyncSnapshot<List<OrderModel>> snapshot,
                     ) {
-                      // if (!snapshot.hasData) {
-                      //   return Text(
-                      //     'Ayo mulai transaksi pertamamu!',
-                      //     style: semiboldTS,
-                      //     textAlign: TextAlign.center,
-                      //   );
-                      // } else
                       if (snapshot.hasData) {
+                        if (snapshot.data!.isEmpty) {
+                          return Text(
+                            'Ayo mulai transaksi pertamamu!',
+                            style: mediumTS,
+                            textAlign: TextAlign.center,
+                          );
+                        }
                         snapshot.data!.sort(
                             (a, b) => b.orderMade!.compareTo(a.orderMade!));
 
@@ -108,14 +109,14 @@ class _HistoryPageState extends State<HistoryPage> {
                       context,
                       AsyncSnapshot<List<WithdrawModel>> snapshot,
                     ) {
-                      // if (!snapshot.hasData) {
-                      //   return Text(
-                      //     'Ayo mulai transaksi pertamamu!',
-                      //     style: semiboldTS,
-                      //     textAlign: TextAlign.center,
-                      //   );
-                      // } else
                       if (snapshot.hasData) {
+                        if (snapshot.data!.isEmpty) {
+                          return Text(
+                            'Ayo mulai transaksi pertamamu!',
+                            style: mediumTS,
+                            textAlign: TextAlign.center,
+                          );
+                        }
                         snapshot.data!.sort((a, b) =>
                             b.withdrawMade!.compareTo(a.withdrawMade!));
 
@@ -268,7 +269,10 @@ class WithdrawHistory extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Image.asset('assets/icons/ewallet_${withdraw.ewallet}.png'),
+                  Image.asset(
+                    'assets/icons/ewallet_${withdraw.ewallet}.png',
+                    scale: 2,
+                  ),
                   const SizedBox(
                     width: 8,
                   ),

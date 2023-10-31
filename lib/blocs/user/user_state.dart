@@ -48,3 +48,13 @@ class UserCheckPendingOrderFailed extends UserState {
   @override
   List<Object> get props => [e];
 }
+
+class UserScanBarcodeSuccess extends UserState {}
+
+class UserScanBarcodeFailed extends UserState {
+  final String e;
+  const UserScanBarcodeFailed(this.e);
+
+  @override
+  List<Object> get props => [e];
+}

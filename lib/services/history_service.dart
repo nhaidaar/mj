@@ -18,7 +18,7 @@ class HistoryService {
 
   Stream<List<WithdrawModel>> streamPenarikan(String uid) {
     return FirebaseFirestore.instance
-        .collection('withdraw')
+        .collection('withdraws')
         .where('uid', isEqualTo: uid)
         .snapshots()
         .map((QuerySnapshot querySnapshot) {

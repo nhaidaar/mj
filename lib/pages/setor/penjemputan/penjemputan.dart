@@ -14,8 +14,8 @@ import 'package:mj/shared/values.dart';
 import 'package:mj/widgets/custom_button.dart';
 import 'package:page_transition/page_transition.dart';
 
-import '../blocs/user/user_bloc.dart';
-import '../shared/method.dart';
+import '../../../blocs/user/user_bloc.dart';
+import '../../../shared/method.dart';
 
 class Penjemputan extends StatefulWidget {
   final OrderModel model;
@@ -35,32 +35,34 @@ class _PenjemputanState extends State<Penjemputan> {
   Completer<GoogleMapController?> controller = Completer();
   GoogleMapPolyline googleMapPolyline = GoogleMapPolyline(apiKey: mapsApi);
 
-  int estimasiDriver = 5; // in seconds
+  int estimasiDriver = 300; // in seconds
   late Timer timer;
   bool timerComplete = false;
 
   @override
   void initState() {
-    super.initState();
-
     // Set the user and driver position
     userPosition = LatLng(
-      widget.model.latitude!,
-      widget.model.longitude!,
-    );
-    driverPosition = const LatLng(
-      -7.9503375,
-      112.615279,
+      widget.model.userLatitude!,
+      widget.model.userLongitude!,
     );
 
-    // Get route (polylines)
-    getPolylinesWithLocation();
+    driverPosition = LatLng(
+      widget.model.warehouseLatitude!,
+      widget.model.warehouseLongitude!,
+    );
 
     // Get the timer start from DateTime in Firebase
     checkTimer();
 
-    // Start the timer
-    startTimer();
+    if (!timerComplete) {
+      // Start the timer
+      startTimer();
+      // Get route (polylines)
+      getPolylinesWithLocation();
+    }
+
+    super.initState();
   }
 
   void getPolylinesWithLocation() async {
@@ -70,9 +72,11 @@ class _PenjemputanState extends State<Penjemputan> {
       destination: userPosition!,
       mode: RouteMode.driving,
     );
-    setState(() {
-      coordinates = driveRoute;
-    });
+    if (mounted) {
+      setState(() {
+        coordinates = driveRoute;
+      });
+    }
   }
 
   void checkTimer() {
@@ -82,6 +86,11 @@ class _PenjemputanState extends State<Penjemputan> {
     if (difference.inSeconds >= estimasiDriver) {
       setState(() {
         timerComplete = true; // Jika melebihi 5 menit, tandai sebagai selesai
+        driverPosition = LatLng(
+          userPosition!.latitude,
+          userPosition!.longitude + 0.0001,
+        );
+        getPolylinesWithLocation();
       });
     } else {
       setState(() {
@@ -93,14 +102,15 @@ class _PenjemputanState extends State<Penjemputan> {
 
   void startTimer() {
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (estimasiDriver > 0) {
-          estimasiDriver--;
-        } else {
-          timerComplete = true;
-          timer.cancel();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (estimasiDriver > 0) {
+            estimasiDriver--;
+          } else {
+            checkTimer();
+          }
+        });
+      }
     });
   }
 
@@ -117,8 +127,6 @@ class _PenjemputanState extends State<Penjemputan> {
             ),
           ),
           builder: (BuildContext context) {
-            // return StatefulBuilder(
-            //     builder: (BuildContext context, StateSetter setState) {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
@@ -286,63 +294,7 @@ class _PenjemputanState extends State<Penjemputan> {
                       ? CustomContinue(
                           text: 'Selesai',
                           action: () {
-                            showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    alignment: Alignment.center,
-                                    insetPadding: EdgeInsets.zero,
-                                    backgroundColor: Colors.transparent,
-                                    elevation: 0,
-                                    content: Container(
-                                      padding: const EdgeInsets.all(24),
-                                      decoration: BoxDecoration(
-                                        color: whiteColor,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'Selamat! Anda mendapatkan ${widget.model.poin} poin 🎉',
-                                            style: semiboldTS,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          const SizedBox(
-                                            height: 24,
-                                          ),
-                                          CustomContinue(
-                                            text: 'Klaim sekarang',
-                                            action: () async {
-                                              try {
-                                                await UserService()
-                                                    .updateOrderStatus(
-                                                        widget.model.orderId!);
-                                                await UserService()
-                                                    .updateUserContri(
-                                                  widget.model.uid!,
-                                                  widget.model.poin!,
-                                                  widget.model.minyak!,
-                                                );
-                                                Navigator.pushAndRemoveUntil(
-                                                    context,
-                                                    PageTransition(
-                                                      child: const Home(),
-                                                      type: PageTransitionType
-                                                          .fade,
-                                                    ),
-                                                    (route) => false);
-                                              } on Exception catch (e) {
-                                                showSnackbar(
-                                                    context, e.toString());
-                                              }
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                });
+                            handleClaimDialog(context);
                           },
                         )
                       : CustomContinue(
@@ -356,9 +308,76 @@ class _PenjemputanState extends State<Penjemputan> {
               ),
             );
           });
-      // });
       bottomsheetOpened = true;
     }
+  }
+
+  void handleClaimDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            alignment: Alignment.center,
+            insetPadding: EdgeInsets.zero,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            content: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: whiteColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Selamat! Anda mendapatkan ${widget.model.poin} poin 🎉',
+                    style: semiboldTS,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: 24,
+                  ),
+                  CustomContinue(
+                    text: 'Klaim sekarang',
+                    action: () async {
+                      try {
+                        showLoadingDialog(context);
+
+                        await UserService()
+                            .updateOrderStatus(widget.model.orderId!);
+                        await UserService().updateUserContri(
+                          widget.model.uid!,
+                          widget.model.poin!,
+                          widget.model.minyak!,
+                        );
+
+                        // Pop loading dialog
+                        Navigator.pop(context);
+
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          PageTransition(
+                            child: const Home(),
+                            type: PageTransitionType.fade,
+                          ),
+                          (route) => false,
+                        );
+
+                        showSnackbar(context, 'Poin berhasil diklaim!');
+                      } on Exception catch (e) {
+                        // Pop loading dialog
+                        Navigator.pop(context);
+
+                        showSnackbar(context, e.toString());
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   @override
@@ -382,11 +401,14 @@ class _PenjemputanState extends State<Penjemputan> {
             });
             return WillPopScope(
               onWillPop: () async {
+                if (!timerComplete) {
+                  timer.cancel();
+                }
                 Navigator.pushAndRemoveUntil(
                     context,
                     PageTransition(
                       child: const Home(),
-                      type: PageTransitionType.leftToRightWithFade,
+                      type: PageTransitionType.leftToRight,
                     ),
                     (route) => false);
                 return false;
@@ -400,11 +422,14 @@ class _PenjemputanState extends State<Penjemputan> {
                     padding: const EdgeInsets.only(left: 16),
                     child: InkWell(
                       onTap: () {
+                        if (!timerComplete) {
+                          timer.cancel();
+                        }
                         Navigator.pushAndRemoveUntil(
                           context,
                           PageTransition(
                             child: const Home(),
-                            type: PageTransitionType.leftToRightWithFade,
+                            type: PageTransitionType.leftToRight,
                           ),
                           (route) => false,
                         );
@@ -469,14 +494,15 @@ class _PenjemputanState extends State<Penjemputan> {
                 body: GoogleMap(
                   initialCameraPosition: CameraPosition(
                     target: LatLng(
-                      widget.model.latitude!,
-                      widget.model.longitude!,
+                      widget.model.userLatitude!,
+                      widget.model.userLongitude!,
                     ),
-                    zoom: 14,
+                    zoom: timerComplete ? 19 : 17,
                   ),
                   mapType: MapType.terrain,
                   padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).size.height),
+                    bottom: MediaQuery.of(context).size.height,
+                  ),
                   onMapCreated: (mapController) {
                     controller.complete(mapController);
                   },
@@ -488,6 +514,8 @@ class _PenjemputanState extends State<Penjemputan> {
                     Marker(
                       markerId: const MarkerId('Driver Location'),
                       position: driverPosition!,
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                          BitmapDescriptor.hueOrange),
                     ),
                   },
                   polylines: {
@@ -553,9 +581,9 @@ class FloatingShowBottomsheet extends StatelessWidget {
             shadows: [
               BoxShadow(
                 color: blackBlur20Color,
-                blurRadius: 32,
-                offset: const Offset(0, 16),
-                spreadRadius: -20,
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+                spreadRadius: -10,
               )
             ],
           ),

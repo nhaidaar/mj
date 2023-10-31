@@ -11,10 +11,10 @@ import 'package:mj/shared/const.dart';
 import 'package:mj/widgets/custom_form.dart';
 import 'package:page_transition/page_transition.dart';
 
-import '../../blocs/auth/auth_bloc.dart';
-import '../services/user_service.dart';
-import '../shared/method.dart';
-import '../widgets/custom_button.dart';
+import '../../../blocs/auth/auth_bloc.dart';
+import '../../services/user_service.dart';
+import '../../shared/method.dart';
+import '../../widgets/custom_button.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -25,6 +25,7 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(20),
           children: [
             // User Profile Picture
@@ -219,6 +220,7 @@ class _EditProfileState extends State<EditProfile> {
 
   Future<void> handleUpdateProfile() async {
     try {
+      showLoadingDialog(context);
       await user!.reauthenticateWithCredential(EmailAuthProvider.credential(
           email: recentEmail, password: currentPasswordController.text));
 
@@ -238,6 +240,7 @@ class _EditProfileState extends State<EditProfile> {
 
       await user!.updateDisplayName(nameController.text);
 
+      // Pop loading dialog
       Navigator.pop(context);
 
       Navigator.pushAndRemoveUntil(
@@ -248,6 +251,8 @@ class _EditProfileState extends State<EditProfile> {
 
       showSnackbar(context, 'Profil berhasil diupdate!');
     } on FirebaseAuthException catch (e) {
+      // Pop loading dialog
+      Navigator.pop(context);
       if (e.code == 'channel-error') {
         showSnackbar(context, 'Please insert your current password!');
       } else {
@@ -281,72 +286,73 @@ class _EditProfileState extends State<EditProfile> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 140,
-                  width: 140,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: white2Color, width: 10),
-                    shape: BoxShape.circle,
-                    image: pickedImage != null
-                        ? DecorationImage(
-                            image: MemoryImage(pickedImage!),
-                            fit: BoxFit.cover,
-                          )
-                        : DecorationImage(
-                            image: NetworkImage(user!.photoURL.toString()),
-                            fit: BoxFit.cover,
-                          ),
+                Center(
+                  child: Container(
+                    height: 140,
+                    width: 140,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: white2Color, width: 10),
+                      shape: BoxShape.circle,
+                      image: pickedImage != null
+                          ? DecorationImage(
+                              image: MemoryImage(pickedImage!),
+                              fit: BoxFit.cover,
+                            )
+                          : DecorationImage(
+                              image: NetworkImage(user!.photoURL.toString()),
+                              fit: BoxFit.cover,
+                            ),
+                    ),
                   ),
                 ),
                 const SizedBox(
                   height: 16,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        Uint8List? img = await pickImage(ImageSource.gallery);
-                        setState(() {
-                          if (img != null) {
-                            pickedImage = img;
-                          }
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 18,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: white3Color, width: 1.5),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: FittedBox(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'assets/icons/profile_edit.png',
-                                width: 22,
-                              ),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              Text(
-                                'Change Image',
-                                style: semiboldTS,
-                              ),
-                            ],
-                          ),
+                Center(
+                  child: GestureDetector(
+                    onTap: () async {
+                      Uint8List? img = await pickImage(ImageSource.gallery);
+                      setState(() {
+                        if (img != null) {
+                          pickedImage = img;
+                        }
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 18,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: white3Color, width: 1.5),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: FittedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/icons/profile_edit.png',
+                              width: 22,
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              'Change Image',
+                              style: semiboldTS,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
 
                 const SizedBox(
@@ -354,91 +360,89 @@ class _EditProfileState extends State<EditProfile> {
                 ),
 
                 // Name Form
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Name',
-                      style: semiboldTS.copyWith(fontSize: 14),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    CustomFormField(
-                      focusNode: nameFocusNode,
-                      keyboardType: TextInputType.name,
-                      controller: nameController,
-                      hintText: 'Type your name',
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                Text(
+                  'Name',
+                  style: semiboldTS.copyWith(fontSize: 14),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                CustomFormField(
+                  focusNode: nameFocusNode,
+                  keyboardType: TextInputType.name,
+                  controller: nameController,
+                  hintText: 'Type your name',
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
 
-                    // Email Form
-                    Text(
-                      'Email',
-                      style: semiboldTS.copyWith(fontSize: 14),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    CustomFormField(
-                      focusNode: emailFocusNode,
-                      keyboardType: TextInputType.emailAddress,
-                      controller: emailController,
-                      hintText: 'Type your email',
-                    ),
+                // Email Form
+                Text(
+                  'Email',
+                  style: semiboldTS.copyWith(fontSize: 14),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                CustomFormField(
+                  focusNode: emailFocusNode,
+                  keyboardType: TextInputType.emailAddress,
+                  controller: emailController,
+                  hintText: 'Type your email',
+                ),
 
-                    const SizedBox(
-                      height: 20,
-                    ),
+                const SizedBox(
+                  height: 20,
+                ),
 
-                    // New Password Form
-                    Text(
-                      'New Password',
-                      style: semiboldTS.copyWith(fontSize: 14),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    CustomFormField(
-                      focusNode: newPasswordFocusNode,
-                      controller: newPasswordController,
-                      obscureText: _newPasswordVisible,
-                      isPassword: true,
-                      action: () {
-                        setState(() {
-                          _newPasswordVisible = !_newPasswordVisible;
-                        });
-                      },
-                      hintText: 'Leave blank if won\'t change your password',
-                    ),
+                // New Password Form
+                Text(
+                  'New Password',
+                  style: semiboldTS.copyWith(fontSize: 14),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                CustomFormField(
+                  focusNode: newPasswordFocusNode,
+                  controller: newPasswordController,
+                  obscureText: _newPasswordVisible,
+                  isPassword: true,
+                  action: () {
+                    setState(() {
+                      _newPasswordVisible = !_newPasswordVisible;
+                    });
+                  },
+                  hintText: 'Leave blank if won\'t change your password',
+                ),
 
-                    const SizedBox(
-                      height: 20,
-                    ),
+                const SizedBox(
+                  height: 20,
+                ),
 
-                    // Current Password Form
-                    Text(
-                      'Current Password',
-                      style: semiboldTS.copyWith(fontSize: 14),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    CustomFormField(
-                      focusNode: currentPasswordFocusNode,
-                      controller: currentPasswordController,
-                      obscureText: _currentPasswordVisible,
-                      isPassword: true,
-                      action: () {
-                        setState(() {
-                          _currentPasswordVisible = !_currentPasswordVisible;
-                        });
-                      },
-                      hintText: 'Type your current password',
-                    ),
-                  ],
+                // Current Password Form
+                Text(
+                  'Current Password',
+                  style: semiboldTS.copyWith(fontSize: 14),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                CustomFormField(
+                  focusNode: currentPasswordFocusNode,
+                  controller: currentPasswordController,
+                  obscureText: _currentPasswordVisible,
+                  isPassword: true,
+                  action: () {
+                    setState(() {
+                      _currentPasswordVisible = !_currentPasswordVisible;
+                    });
+                  },
+                  hintText: 'Type your current password',
+                ),
+                const SizedBox(
+                  height: 20,
                 ),
               ],
             ),

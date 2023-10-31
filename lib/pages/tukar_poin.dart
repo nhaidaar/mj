@@ -73,6 +73,7 @@ class _TukarPoinState extends State<TukarPoin> {
         elevation: 0,
       ),
       body: ListView(
+        physics: const BouncingScrollPhysics(),
         children: [
           const SizedBox(
             height: 12,
@@ -230,26 +231,37 @@ class _TukarPoinState extends State<TukarPoin> {
           ),
         ],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-        child: !isNoTelpEmpty &&
-                selectedProvider != null &&
-                selectedNominal != null
-            ? CustomContinue(
-                text: 'Lanjutkan',
-                bgColor: yellowColor,
-                action: () {
-                  if (userPoin! >= jumlahNominal) {
-                    handleConfirmationDialog(context, user);
-                  } else {
-                    showSnackbar(context, 'Poin anda tidak cukup!');
-                  }
-                },
-              )
-            : CustomContinue(
-                text: 'Lanjutkan',
-                bgColor: white3Color,
-              ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: whiteColor,
+              blurRadius: 15,
+              spreadRadius: 30,
+            )
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          child: !isNoTelpEmpty &&
+                  selectedProvider != null &&
+                  selectedNominal != null
+              ? CustomContinue(
+                  text: 'Lanjutkan',
+                  bgColor: yellowColor,
+                  action: () {
+                    if (userPoin! >= jumlahNominal) {
+                      handleConfirmationDialog(context, user);
+                    } else {
+                      showSnackbar(context, 'Poin anda tidak cukup!');
+                    }
+                  },
+                )
+              : CustomContinue(
+                  text: 'Lanjutkan',
+                  bgColor: white3Color,
+                ),
+        ),
       ),
     );
   }
@@ -310,37 +322,7 @@ class _TukarPoinState extends State<TukarPoin> {
                           child: CustomContinue(
                             text: 'Ya',
                             action: () async {
-                              try {
-                                await UserService().requestWithdraw(
-                                  WithdrawModel(
-                                    withdrawMade: DateTime.now(),
-                                    uid: user.uid,
-                                    withdrawId: generateOrderId(),
-                                    ewallet: ewallet,
-                                    nominal: jumlahNominal,
-                                    tujuan: notelpController.text,
-                                    isFinished: false,
-                                  ),
-                                );
-                                await UserService().updateUserBalance(
-                                  user.uid,
-                                  jumlahNominal,
-                                );
-                                showSnackbar(
-                                  context,
-                                  'Penarikan sedang diproses!',
-                                );
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  PageTransition(
-                                    child: const Home(),
-                                    type: PageTransitionType.fade,
-                                  ),
-                                  (route) => false,
-                                );
-                              } on Exception catch (e) {
-                                showSnackbar(context, e.toString());
-                              }
+                              await handleTukarPoin(context, user);
                             },
                           ),
                         ),
@@ -352,6 +334,80 @@ class _TukarPoinState extends State<TukarPoin> {
             ),
           );
         });
+  }
+
+  Future<void> handleTukarPoin(BuildContext context, User user) async {
+    try {
+      showLoadingDialog(context);
+      await UserService().requestWithdraw(
+        WithdrawModel(
+          withdrawMade: DateTime.now(),
+          uid: user.uid,
+          withdrawId: generateOrderId(),
+          ewallet: ewallet,
+          nominal: jumlahNominal,
+          tujuan: notelpController.text,
+          isFinished: false,
+        ),
+      );
+      await UserService().updateUserBalance(
+        user.uid,
+        jumlahNominal,
+      );
+      // Pop loading dialog
+      Navigator.pop(context);
+
+      Navigator.pop(context);
+
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              alignment: Alignment.center,
+              insetPadding: EdgeInsets.zero,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              content: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: whiteColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Selamat! Anda berhasil menarik saldo Rp$jumlahNominal 🎉',
+                      style: semiboldTS,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    CustomContinue(
+                      text: 'Kembali ke Beranda',
+                      action: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          PageTransition(
+                            child: const Home(),
+                            type: PageTransitionType.fade,
+                          ),
+                          (route) => false,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          });
+    } on Exception catch (e) {
+      // Pop loading dialog
+      Navigator.pop(context);
+      showSnackbar(context, e.toString());
+    }
   }
 }
 

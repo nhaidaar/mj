@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:mj/models/order_model.dart';
@@ -11,15 +13,6 @@ part 'user_state.dart';
 class UserBloc extends Bloc<UserEvent, UserState> {
   UserBloc() : super(UserInitial()) {
     on<UserEvent>((event, emit) async {
-      if (event is UserPostOrder) {
-        emit(UserLoading());
-        try {
-          await UserService().addOrder(event.order);
-          emit(UserMakeOrderSuccess());
-        } catch (e) {
-          emit(UserMakeOrderFailed(e.toString()));
-        }
-      }
       if (event is UserPostData) {
         emit(UserLoading());
         try {
@@ -27,6 +20,15 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           emit(UserRegisterSuccess());
         } catch (e) {
           emit(UserRegisterFailed(e.toString()));
+        }
+      }
+      if (event is UserPostOrder) {
+        emit(UserLoading());
+        try {
+          await UserService().addOrder(event.order);
+          emit(UserMakeOrderSuccess());
+        } catch (e) {
+          emit(UserMakeOrderFailed(e.toString()));
         }
       }
       if (event is UserCheckPendingOrder) {
@@ -41,6 +43,11 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         } catch (e) {
           emit(UserCheckPendingOrderFailed(e.toString()));
         }
+      }
+      if (event is UserScanBarcode) {
+        emit(UserLoading());
+        await Future.delayed(const Duration(seconds: 3));
+        emit(UserScanBarcodeSuccess());
       }
     });
   }

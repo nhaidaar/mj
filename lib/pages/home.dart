@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mj/pages/article.dart';
-import 'package:mj/pages/history.dart';
-import 'package:mj/pages/profile.dart';
+import 'package:mj/pages/home/article.dart';
+import 'package:mj/pages/home/history.dart';
+import 'package:mj/pages/home/profile.dart';
 import 'package:page_transition/page_transition.dart';
 
 import '../blocs/auth/auth_bloc.dart';
 import '../shared/const.dart';
 import 'auth/login.dart';
-import 'dashboard.dart';
+import 'home/dashboard.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});

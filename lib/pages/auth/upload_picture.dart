@@ -24,12 +24,15 @@ class _UploadPictureState extends State<UploadPicture> {
   Uint8List? pickedImage;
 
   Future<void> handleImageUpload() async {
+    showLoadingDialog(context);
     try {
       final user = FirebaseAuth.instance.currentUser;
       final url = await uploadImageToStorage(user!.uid, pickedImage!);
 
       await user.updatePhotoURL(url);
       await UserService().updateUserPicture(user.uid, url);
+
+      Navigator.pop(context);
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -42,6 +45,7 @@ class _UploadPictureState extends State<UploadPicture> {
 
       showSnackbar(context, 'Foto profil Anda berhasil diganti!');
     } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
       showSnackbar(context, e.code);
     }
   }
@@ -51,7 +55,7 @@ class _UploadPictureState extends State<UploadPicture> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -127,7 +131,7 @@ class _UploadPictureState extends State<UploadPicture> {
               ),
 
               const SizedBox(
-                height: 40,
+                height: 20,
               ),
 
               // Insert Image Widget
@@ -181,7 +185,7 @@ class _UploadPictureState extends State<UploadPicture> {
       // Upload Image Button
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         child: pickedImage != null
             ? CustomContinue(
                 text: 'Lanjutkan',

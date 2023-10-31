@@ -3,15 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mj/pages/atur_minyak.dart';
+import 'package:mj/pages/setor/pengantaran/antar_sendiri.dart';
+import 'package:mj/pages/setor/penjemputan/atur_minyak.dart';
 import 'package:mj/pages/notifications.dart';
-import 'package:mj/pages/penjemputan.dart';
+import 'package:mj/pages/setor/penjemputan/penjemputan.dart';
 import 'package:mj/pages/tukar_poin.dart';
 import 'package:mj/shared/const.dart';
-import 'package:mj/shared/method.dart';
 import 'package:page_transition/page_transition.dart';
 
-import '../blocs/user/user_bloc.dart';
+import '../../blocs/user/user_bloc.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -21,6 +21,7 @@ class DashboardPage extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     return SafeArea(
       child: ListView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.all(20),
         children: [
           Row(
@@ -31,6 +32,7 @@ class DashboardPage extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: CircleAvatar(
+                  backgroundColor: whiteColor,
                   backgroundImage: user!.photoURL != null
                       ? NetworkImage(user.photoURL.toString()) as ImageProvider
                       : const AssetImage('assets/images/profile.jpg'),
@@ -48,21 +50,22 @@ class DashboardPage extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Stack(
-                  children: [
-                    Icon(Icons.notifications_outlined),
-                    // Positioned(
-                    //   right: 2,
-                    //   top: 2,
-                    //   child: Container(
-                    //     height: 8,
-                    //     width: 8,
-                    //     decoration: const BoxDecoration(
-                    //         shape: BoxShape.circle, color: Colors.red),
-                    //   ),
-                    // ),
-                  ],
-                ),
+                child:
+                    // const Stack(
+                    //   children: [
+                    const Icon(Icons.notifications_outlined),
+                // Positioned(
+                //   right: 2,
+                //   top: 2,
+                //   child: Container(
+                //     height: 8,
+                //     width: 8,
+                //     decoration: const BoxDecoration(
+                //         shape: BoxShape.circle, color: Colors.red),
+                //   ),
+                // ),
+                //   ],
+                // ),
               ),
             ],
           ),
@@ -135,7 +138,9 @@ class DashboardPage extends StatelessWidget {
                                 height: 6,
                               ),
                               Text(
-                                '${estimasi ~/ 60} Menit lagi',
+                                estimasi > 0
+                                    ? '${estimasi ~/ 60} Menit lagi'
+                                    : 'Driver telah tiba',
                                 style: semiboldTS.copyWith(fontSize: 18),
                               ),
                             ],
@@ -152,7 +157,7 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
           Text(
-            'Selamat Datang, Naufal 👋',
+            'Selamat Datang, ${user.displayName ?? 'User'} 👋',
             style: semiboldTS.copyWith(fontSize: 24, height: 1.5),
           ),
           const SizedBox(
@@ -183,21 +188,21 @@ class DashboardPage extends StatelessWidget {
                               DashboardStatus(
                                 icon: 'assets/icons/dashboardstatus_point.png',
                                 title: 'Total Poin',
-                                value: data['totalPoin'].toString(),
+                                value: '${data['totalPoin']}',
                               ),
                               const SizedBox(height: 20),
                               DashboardStatus(
                                 icon: 'assets/icons/dashboardstatus_minyak.png',
                                 title: 'Total Minyak',
-                                value: '${data['totalMinyak'].toString()} L',
+                                value:
+                                    '${data['totalMinyak'].toStringAsFixed(1)} L',
                               ),
                               const SizedBox(height: 20),
                               DashboardStatus(
                                 icon:
                                     'assets/icons/dashboardstatus_earning.png',
                                 title: 'Total Penarikan',
-                                value:
-                                    'Rp ${data['totalPendapatan'].toString()}',
+                                value: 'Rp ${data['totalPendapatan']}',
                               ),
                             ],
                           );
@@ -252,7 +257,22 @@ class DashboardPage extends StatelessWidget {
                     DashboardAction(
                       isJemput: false,
                       action: () {
-                        showSnackbar(context, 'Coming soon !');
+                        // WarehouseService().addWarehouse(WarehouseModel(
+                        //   id: 'LWK01',
+                        //   title: 'SiCepat Ekspres Malang Lowokwaru',
+                        //   isAvailable: true,
+                        //   imgUrl: "",
+                        //   latitude: -7.9458221,
+                        //   longitude: 112.6184677,
+                        // ));
+                        Navigator.push(
+                          context,
+                          PageTransition(
+                            child: const AntarSendiri(),
+                            type: PageTransitionType.rightToLeft,
+                          ),
+                        );
+                        // showSnackbar(context, 'Coming soon !');
                       },
                     ),
                   ],

@@ -90,7 +90,7 @@ class UserService {
 
   Future<void> requestWithdraw(WithdrawModel model) async {
     final CollectionReference withdraw =
-        FirebaseFirestore.instance.collection('withdraw');
+        FirebaseFirestore.instance.collection('withdraws');
 
     try {
       await withdraw.doc(model.withdrawId).set(model.toMap());

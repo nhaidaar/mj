@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mj/models/order_model.dart';
-import 'package:mj/pages/atur_penjemputan.dart';
+import 'package:mj/pages/setor/penjemputan/atur_penjemputan.dart';
 import 'package:mj/shared/const.dart';
 import 'package:mj/shared/method.dart';
 import 'package:mj/widgets/custom_button.dart';
@@ -82,6 +82,7 @@ class _AturMinyakState extends State<AturMinyak> {
         elevation: 0,
       ),
       body: ListView(
+        physics: const BouncingScrollPhysics(),
         children: [
           Padding(
             padding: const EdgeInsets.all(20),
@@ -331,71 +332,96 @@ class JumlahMinyak extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: action,
-      child: Container(
-        padding: const EdgeInsets.all(22),
-        margin: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          border:
-              Border.all(color: isSelected ? orangeColor : Colors.transparent),
-          color: white2Color,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(22),
+            margin: const EdgeInsets.only(right: 20, top: 6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                  color: isSelected ? orangeColor : Colors.transparent),
+              color: white2Color,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: orangeColor,
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: ImageIcon(
-                    const AssetImage('assets/icons/dashboardstatus_minyak.png'),
-                    color: white2Color,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: orangeColor,
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: ImageIcon(
+                        const AssetImage(
+                            'assets/icons/dashboardstatus_minyak.png'),
+                        color: white2Color,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Text(
+                      '${model.minyak} Liter',
+                      style: semiboldTS.copyWith(fontSize: 18),
+                    ),
+                  ],
                 ),
                 const SizedBox(
-                  width: 12,
+                  height: 20,
                 ),
-                Text(
-                  '${model.minyak} Liter',
-                  style: semiboldTS.copyWith(fontSize: 18),
+                Row(
+                  children: [
+                    Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: orangeColor,
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: ImageIcon(
+                        const AssetImage(
+                            'assets/icons/dashboardstatus_point.png'),
+                        color: white2Color,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Text(
+                      '${model.poin} poin',
+                      style: semiboldTS.copyWith(fontSize: 18),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(
-              height: 20,
-            ),
-            Row(
-              children: [
-                Container(
-                  height: 40,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: orangeColor,
+          ),
+          isSelected
+              ? Positioned(
+                  right: 8,
+                  child: Container(
+                    height: 28,
+                    width: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: whiteColor, width: 2),
+                      color: orangeColor,
+                    ),
+                    child: Icon(
+                      Icons.check,
+                      size: 18,
+                      color: whiteColor,
+                    ),
                   ),
-                  padding: const EdgeInsets.all(8),
-                  child: ImageIcon(
-                    const AssetImage('assets/icons/dashboardstatus_point.png'),
-                    color: white2Color,
-                  ),
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
-                Text(
-                  '${model.poin} poin',
-                  style: semiboldTS.copyWith(fontSize: 18),
-                ),
-              ],
-            ),
-          ],
-        ),
+                )
+              : Container()
+        ],
       ),
     );
   }

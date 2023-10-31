@@ -32,15 +32,17 @@ class CustomFormField extends StatelessWidget {
         filled: true,
         fillColor: white2Color,
         suffixIcon: isPassword
-            ? IconButton(
-                onPressed: action,
-                icon: !obscureText
-                    ? Image.asset(
-                        'assets/icons/password_visible.png',
-                      )
-                    : Image.asset(
-                        'assets/icons/password_invisible.png',
-                      ),
+            ? InkWell(
+                onTap: action,
+                child: Ink(
+                  child: ImageIcon(
+                    AssetImage(
+                      !obscureText
+                          ? 'assets/icons/password_visible.png'
+                          : 'assets/icons/password_invisible.png',
+                    ),
+                  ),
+                ),
               )
             : null,
         hintText: hintText,

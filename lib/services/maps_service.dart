@@ -3,9 +3,6 @@ import 'package:geolocator/geolocator.dart';
 
 class MapsService {
   Future<Position> getUserCurrentPosition() async {
-    // await Geolocator.requestPermission();
-    // final location = Geolocator.getCurrentPosition();
-    // return location;
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -72,4 +69,45 @@ class MapsService {
       return 'Error: $e';
     }
   }
+
+  Future<String> getShortAddressFromLatLng(
+      double latitude, double longitude) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        latitude,
+        longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        return placemarks[0].street ?? '';
+      } else {
+        return 'Address not found';
+      }
+    } catch (e) {
+      return 'Error: $e';
+    }
+  }
+
+  // LatLngBounds calculateLatLngBounds(LatLng position1, LatLng position2) {
+  //   double minLat = position1.latitude < position2.latitude
+  //       ? position1.latitude
+  //       : position2.latitude;
+
+  //   double minLng = position1.longitude < position2.longitude
+  //       ? position1.longitude
+  //       : position2.longitude;
+
+  //   double maxLat = position1.latitude > position2.latitude
+  //       ? position1.latitude
+  //       : position2.latitude;
+
+  //   double maxLng = position1.longitude > position2.longitude
+  //       ? position1.longitude
+  //       : position2.longitude;
+
+  //   LatLng southwest = LatLng(minLat, minLng);
+  //   LatLng northeast = LatLng(maxLat, maxLng);
+
+  //   return LatLngBounds(southwest: southwest, northeast: northeast);
+  // }
 }
