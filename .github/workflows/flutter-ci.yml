@@ -33,5 +33,5 @@ jobs:
         run: |
           firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
             --app "1:203170526126:android:f15ce82758dc7fe2df4e3f" \
-            --groups "test \
+            --groups "test" \
             --release-notes "Automated build from GitHub Actions"
